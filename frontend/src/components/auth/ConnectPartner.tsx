@@ -21,7 +21,9 @@ export default function ConnectPartner() {
             const { data } = await axios.post(`${API_URL}/bond/invite`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setInviteUrl(data.invite_url);
+            // Use current window origin + join path + code for robustness
+            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://bond-space.vercel.app';
+            setInviteUrl(`${baseUrl}/join/${data.code}`);
             setPolling(true);
         } catch (err: any) {
             const errData = err.response?.data;
