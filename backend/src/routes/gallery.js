@@ -129,14 +129,41 @@ const getTimeline = async (req, res) => {
 const addTimelineEvent = async (req, res) => {
     try {
         const { couple_id, event_type, label, description, media_url, event_date } = req.body;
+        console.log('[addTimelineEvent] Data:', { couple_id, event_type, label, event_date });
+
+        if (!couple_id || !label || !event_date) {
+            return res.status(400).json({ error: 'Missing required fields: couple_id, label, event_date' });
+        }
+
         const result = await query(
             'INSERT INTO timeline_events (id, couple_id, event_type, label, description, media_url, event_date) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-            [uuidv4(), couple_id, event_type, label, description, media_url, event_date]
+            [uuidv4(), couple_id, event_type || 'milestone', label, description || '', media_url || null, event_date]
         );
         res.status(201).json({ event: result.rows[0] });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to add timeline event' });
+        console.error('[addTimelineEvent] FATAL Error:', err);
+        res.status(500).json({ error: 'Failed to add timeline event', details: err.message });
     }
 };
 
-module.exports = { getAlbums, getAlbum, createAlbum, uploadMedia, getAlbumMedia, getTimeline, addTimelineEvent, upload };
+// POST /api/gallery/timeline/upload — Upload media for timeline (Cloudinary)
+const uploadTimelineMedia = async (req, res) => {
+    try {
+        const { couple_id } = req.body;
+        if (!req.file) return res.status(400).json({ error: 'No file provided' });
+
+        const result = await uploadToCloudinary(req.file.buffer, {
+            folder: `bondspace/${couple_id}/timeline`
+        });
+
+        res.status(201).json({
+            media_url: result.secure_url,
+            public_id: result.public_id
+        });
+    } catch (err) {
+        console.error('[uploadTimelineMedia] FATAL error:', err);
+        res.status(500).json({ error: 'Upload failed', details: err.message });
+    }
+};
+
+module.exports = { getAlbums, getAlbum, createAlbum, uploadMedia, getAlbumMedia, getTimeline, addTimelineEvent, uploadTimelineMedia, upload };

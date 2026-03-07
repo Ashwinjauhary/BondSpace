@@ -81,21 +81,21 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] overflow-y-auto no-scrollbar">
+        <div className="flex-1 flex flex-col bg-[#080808] p-4 overflow-y-auto no-scrollbar pb-60">
 
             {/* Header Profile Card */}
             <div className="shrink-0 p-6 mx-4 mt-4 glass rounded-3xl border-rose-500/20 shadow-[0_0_30px_rgba(225,29,72,0.1)] relative overflow-hidden bg-gradient-to-br from-black/80 to-purple-900/20">
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-rose-500/20 blur-3xl rounded-full" />
 
                 <div className="flex items-center gap-4 relative z-10">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-rose-500 to-purple-500 p-0.5">
-                        <div className="w-full h-full bg-black rounded-full flex items-center justify-center font-bold text-2xl text-white">
+                    <div className="w-16 h-16 rounded-full p-0.5" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))' }}>
+                        <div className="w-full h-full bg-black rounded-full flex items-center justify-center font-black text-2xl text-white">
                             {user?.avatar || user?.name?.[0] || 'U'}
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold text-white">{user?.name}</h2>
-                        <p className="text-gray-400 text-sm mt-0.5 flex items-center gap-1.5">
+                        <h2 className="text-2xl font-black text-white tracking-tight">{user?.name}</h2>
+                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
                             <ShieldCheck size={14} className="text-emerald-400" /> Space Secured
                         </p>
                     </div>

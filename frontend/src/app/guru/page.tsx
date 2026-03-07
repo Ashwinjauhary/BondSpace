@@ -75,19 +75,22 @@ export default function GuruPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] relative">
-            <header className="p-4 mx-4 mt-4 mb-2">
-                <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-rose-400 flex items-center gap-2">
-                    <Brain size={28} className="text-purple-400" /> Love Guru
-                </h2>
-                <p className="text-gray-400 text-sm mt-1">SambaNova AI Relationship Counsel.</p>
-
-                <button
-                    onClick={getToneAnalysis}
-                    className="mt-4 flex items-center gap-2 text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/30 px-4 py-2 rounded-full hover:bg-purple-500/20 transition-colors"
-                >
-                    <MessageSquare size={14} /> Analyse Recent Chat Tone
-                </button>
+        <div className="flex-1 flex flex-col bg-[#080808] p-4 overflow-hidden relative">
+            <header className="p-4 mx-4 mt-4 mb-4 bg-black/40 glass rounded-3xl border border-white/5">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h2 className="text-2xl font-black text-white flex items-center gap-2 tracking-tighter">
+                            <Brain size={24} className="text-accent" /> Love Guru
+                        </h2>
+                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">AI Counselor</p>
+                    </div>
+                    <button
+                        onClick={getToneAnalysis}
+                        className="px-3 h-8 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-accent/20 bg-accent-soft hover:bg-accent/20 active:scale-95 shrink-0"
+                    >
+                        Analyse Tone
+                    </button>
+                </div>
             </header>
 
             {/* Chat Area */}

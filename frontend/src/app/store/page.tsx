@@ -79,29 +79,23 @@ export default function StorePage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] p-4 overflow-hidden relative">
+        <div className="flex-1 flex flex-col bg-[#080808] overflow-hidden relative">
             {/* Header */}
-            <header className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href="/profile" className="p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors">
-                        <ArrowLeft size={20} />
+            <header className="mb-6 flex justify-between items-center bg-black/40 glass p-4 rounded-3xl border border-white/5">
+                <div className="flex items-center gap-3">
+                    <Link href="/profile" className="p-2 bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors border border-white/10">
+                        <ArrowLeft size={18} />
                     </Link>
-                    <div>
-                        <h2 className="text-2xl font-black text-white flex items-center gap-2">
-                            Love Arena <ShoppingBag size={20} className="text-rose-500" />
-                        </h2>
-                        <p className="text-gray-500 text-xs font-medium">Unlock your relationship style.</p>
-                    </div>
                 </div>
-                <div className="bg-zinc-900 border border-white/10 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-xl">
-                    <div className="w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center">
+                <div className="bg-white/5 border border-white/10 px-3 py-1.5 rounded-2xl flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'var(--accent)' }}>
                         <Heart size={12} className="text-white fill-white" />
                     </div>
-                    <span className="text-white font-black text-sm">{user?.love_xp || 0}</span>
+                    <span className="text-white font-black text-xs tracking-tighter">{user?.love_xp || 0}</span>
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 pb-60 px-4">
                 <div className="grid grid-cols-2 gap-4">
                     {loading ? (
                         [1, 2, 3, 4].map(i => <div key={i} className="h-48 glass rounded-3xl animate-pulse" />)
@@ -131,8 +125,8 @@ export default function StorePage() {
                                         disabled={isOwned || purchasing === item.id}
                                         onClick={() => handlePurchase(item)}
                                         className={`w-full py-2.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${isOwned
-                                                ? 'bg-emerald-500/10 text-emerald-400 cursor-default'
-                                                : 'bg-white text-black hover:bg-rose-500 hover:text-white'
+                                            ? 'bg-emerald-500/10 text-emerald-400 cursor-default'
+                                            : 'bg-white text-black hover:bg-rose-500 hover:text-white'
                                             }`}
                                     >
                                         {purchasing === item.id ? (

@@ -23,13 +23,19 @@ export default function BottomNav() {
     ];
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 pointer-events-none">
-            <div className="mx-auto max-w-md bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-2 flex justify-between items-center shadow-2xl shadow-rose-500/10 pointer-events-auto relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-full z-50 px-4 pb-3 pt-2 pointer-events-none">
+            <div className="mx-auto max-w-md bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-2 flex justify-between items-center shadow-2xl pointer-events-auto relative overflow-hidden" style={{ boxShadow: '0 25px 50px -12px var(--accent-glow)' }}>
                 {/* Animated background glow */}
-                <div className="absolute inset-0 bg-gradient-to-r from-rose-500/5 via-purple-500/5 to-rose-500/5 bg-[length:200%_auto] animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-accent-secondary/5 to-accent/5 bg-[length:200%_auto] animate-pulse" />
 
                 {navItems.map((item) => {
-                    const isActive = pathname === item.path;
+                    const isActive = item.path === '/'
+                        ? pathname === '/' || pathname.startsWith('/chat')
+                        : item.path === '/gallery'
+                            ? pathname.startsWith('/gallery') || pathname.startsWith('/bond-tree')
+                            : item.path === '/profile'
+                                ? pathname.startsWith('/profile') || pathname.startsWith('/planner') || pathname.startsWith('/store') || pathname.startsWith('/guru')
+                                : pathname.startsWith(item.path);
                     return (
                         <Link
                             key={item.path}
@@ -40,17 +46,16 @@ export default function BottomNav() {
                             {isActive && (
                                 <motion.div
                                     layoutId="nav-pill"
-                                    className="absolute inset-0 bg-gradient-to-tr from-rose-500 to-purple-600 rounded-2xl shadow-lg shadow-rose-500/20"
+                                    className="absolute inset-0 rounded-2xl shadow-lg"
+                                    style={{
+                                        background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))',
+                                        boxShadow: '0 10px 15px -3px var(--accent-glow)'
+                                    }}
                                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                 />
                             )}
-                            <div className="relative z-10 flex flex-col items-center gap-1">
+                            <div className="relative z-10 flex flex-col items-center">
                                 {item.icon}
-                                {isActive && (
-                                    <span className="text-[10px] font-medium tracking-wide">
-                                        {item.label}
-                                    </span>
-                                )}
                             </div>
                         </Link>
                     );

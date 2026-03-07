@@ -114,30 +114,7 @@ export default function Home() {
   const partnerAvatar = bond.user1_id === user.id ? bond.user2_avatar : bond.user1_avatar;
 
   return (
-    <div className="flex flex-col h-screen bg-[#080808]">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 glass mx-4 mt-4 rounded-3xl z-30 shadow-lg bg-black/40">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-500 to-rose-500 flex items-center justify-center text-lg shadow-lg border-2 border-white/10">
-              {partnerAvatar || partnerName?.[0] || '❤️'}
-            </div>
-            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-black" />
-          </div>
-          <div>
-            <h2 className="font-bold text-white text-sm leading-tight">{partnerName || 'Your Partner'}</h2>
-            <p className="text-[11px] text-emerald-400 font-medium">Online</p>
-          </div>
-        </div>
-        <button
-          onClick={() => !isLocked && lockChat()}
-          disabled={isLocked}
-          className={`p-2.5 rounded-full transition-all ${isLocked ? 'bg-rose-500/20 text-rose-400 opacity-50 cursor-not-allowed' : 'bg-white/5 text-gray-400 hover:text-white'}`}
-        >
-          {isLocked ? <Lock size={18} /> : <Heart size={18} />}
-        </button>
-      </header>
-
+    <div className="flex-1 flex flex-col h-full bg-[#080808] overflow-hidden">
       {/* Chat / Lock screen */}
       <AnimatePresence mode="wait">
         {isLocked ? (
@@ -148,27 +125,32 @@ export default function Home() {
             exit={{ opacity: 0 }}
             className="flex-1 flex flex-col items-center justify-center px-6"
           >
-            <div className="w-20 h-20 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-400 mb-6 glow-rose">
-              <Lock size={32} />
+            <div className="w-20 h-20 rounded-3xl bg-accent-soft flex items-center justify-center text-accent mb-8 relative group" style={{ boxShadow: '0 0 30px var(--accent-glow)' }}>
+              <Lock size={32} className="group-hover:scale-110 transition-transform" />
+              <div className="absolute inset-0 rounded-3xl border border-accent/20 animate-pulse" />
             </div>
-            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-purple-400 mb-2">Space Locked</h3>
-            <p className="text-gray-500 text-sm text-center mb-8 max-w-xs">Enter your mutual passcode to reveal your private universe.</p>
+            <h3 className="text-3xl font-black text-white tracking-tighter mb-2">Space Locked</h3>
+            <p className="text-white/40 text-sm text-center mb-10 max-w-[240px] leading-relaxed">Enter your mutual passcode to reveal your private universe.</p>
             <form onSubmit={handleUnlock} className="w-full max-w-xs space-y-4">
               <input
                 type="password"
                 value={passcode}
                 onChange={e => setPasscode(e.target.value)}
-                placeholder="Passcode..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-center text-lg tracking-widest text-white focus:outline-none focus:border-rose-500/50 transition-all"
+                placeholder="••••"
+                className="w-full bg-white/5 border border-white/10 rounded-3xl px-6 py-5 text-center text-2xl tracking-[1em] text-white focus:outline-none focus:border-accent/50 transition-all font-mono"
                 autoFocus
               />
-              {unlockError && <p className="text-rose-400 text-sm text-center">{unlockError}</p>}
+              {unlockError && <p className="text-accent text-xs font-bold text-center animate-bounce">{unlockError}</p>}
               <button
                 type="submit"
                 disabled={!passcode || isVerifying}
-                className="w-full bg-gradient-to-r from-rose-500 to-purple-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(225,29,72,0.3)] hover:opacity-90 disabled:opacity-40 transition-all"
+                className="w-full text-white font-black uppercase tracking-widest py-5 rounded-3xl flex items-center justify-center gap-2 shadow-2xl hover:opacity-90 active:scale-[0.98] disabled:opacity-40 transition-all"
+                style={{
+                  background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))',
+                  boxShadow: '0 10px 25px -5px var(--accent-glow)'
+                }}
               >
-                {isVerifying ? <Loader2 size={18} className="animate-spin" /> : 'Unlock Space'}
+                {isVerifying ? <Loader2 size={20} className="animate-spin" /> : 'Enter Now'}
               </button>
             </form>
           </motion.div>

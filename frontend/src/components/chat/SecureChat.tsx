@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore';
 import { API_URL } from '@/lib/utils';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip } from 'lucide-react';
+import { Send, Pin, Clock, Mic, MicOff, Square, Play, Pause, Paperclip, Heart } from 'lucide-react';
 import { encryptMessage, decryptMessage } from '@/lib/encryption';
 
 interface Message {
@@ -21,7 +21,7 @@ interface Message {
 }
 
 export default function SecureChat() {
-    const { user, token, bond, socket, encryptionKey } = useStore();
+    const { user, token, bond, socket, encryptionKey, isLocked, lockChat } = useStore();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isDisappearing, setIsDisappearing] = useState(false);
@@ -42,6 +42,11 @@ export default function SecureChat() {
     const [previewPlaying, setPreviewPlaying] = useState(false);
     const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
+    // --- Reliable Web Audio API Playback ---
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
+    const currentPlayingUrlRef = useRef<string | null>(null);
+
     useEffect(() => {
         if (bond?.id && token) {
             axios.get(`${API_URL}/messages/${bond.id}`, {
@@ -50,7 +55,7 @@ export default function SecureChat() {
                 const fetched = res.data.messages;
                 const decrypted = await Promise.all(
                     fetched.map(async (msg: Message) => {
-                        if (msg.message_type === 'voice') return msg; // media_url, no decryption needed
+                        if (msg.message_type === 'voice') return msg;
                         try {
                             const plaintext = encryptionKey
                                 ? await decryptMessage(msg.message, encryptionKey)
@@ -99,7 +104,6 @@ export default function SecureChat() {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
-    // ── Text send ─────────────────────────────────────────────────────────────
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || !socket) return;
@@ -117,47 +121,31 @@ export default function SecureChat() {
         }
     };
 
-    // ── Voice recording ───────────────────────────────────────────────────────
     const startRecording = async () => {
         try {
-            // Force RAW audio capture. Windows Audio Enhancements + Chrome defaults 
-            // often cause "volume 0 / muted" bugs. Setting these to false bypasses the broken OS filters.
             const stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: false,
-                    noiseSuppression: false,
-                    autoGainControl: false
-                }
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
             });
-            console.log('Got audio stream:', stream.active, stream.getAudioTracks().length, 'tracks');
-
-            // Prioritize mp4 (AAC) if supported, because WebM Opus on some Windows Chrome 
-            // records complete silence due to MediaFoundation driver layer glitches.
             let mimeType = '';
             if (MediaRecorder.isTypeSupported('audio/mp4')) { mimeType = 'audio/mp4'; }
             else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) { mimeType = 'audio/webm;codecs=opus'; }
             else if (MediaRecorder.isTypeSupported('audio/ogg;codecs=opus')) { mimeType = 'audio/ogg;codecs=opus'; }
 
             const mr = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
-
             chunksRef.current = [];
-            mr.ondataavailable = e => {
-                if (e.data.size > 0) {
-                    chunksRef.current.push(e.data);
-                }
-            };
+            mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
             mr.onstop = () => {
                 const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' });
                 setAudioBlob(blob);
                 stream.getTracks().forEach(t => t.stop());
             };
-            mr.start(); // Do NOT use timeslices — Chromium often breaks audio-only WebM clustering when timesliced
+            mr.start();
             mediaRecorderRef.current = mr;
             setIsRecording(true);
             setRecordingTime(0);
             timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
         } catch (err) {
-            alert('Microphone access denied. Please allow mic permission.');
+            alert('Microphone access denied.');
         }
     };
 
@@ -177,10 +165,8 @@ export default function SecureChat() {
 
     const sendVoiceNote = () => {
         if (!audioBlob || !socket) return;
-        // Revoke any previous preview audio
         if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
         setPreviewPlaying(false);
-        // Read as data URL to send via socket
         const reader = new FileReader();
         reader.onload = () => {
             socket.emit('send_message', {
@@ -193,27 +179,18 @@ export default function SecureChat() {
         reader.readAsDataURL(audioBlob);
     };
 
-    // --- Reliable Web Audio API Playback ---
-    // The standard <audio> tag in Chrome often fails silently for MediaRecorder WebM blobs.
-    // AudioContext decodes the raw bytes perfectly every time.
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
-    const currentPlayingUrlRef = useRef<string | null>(null);
-
     const playWebAudio = async (url: string, id: string, isPreview: boolean) => {
         try {
             if (!audioContextRef.current) audioContextRef.current = new AudioContext();
             const ctx = audioContextRef.current;
             if (ctx.state === 'suspended') await ctx.resume();
 
-            // Stop any currently playing audio
             if (currentSourceRef.current) {
                 currentSourceRef.current.stop();
                 currentSourceRef.current.disconnect();
                 currentSourceRef.current = null;
             }
 
-            // If clicking the same button that's playing, just stop it
             if (currentPlayingUrlRef.current === url) {
                 currentPlayingUrlRef.current = null;
                 setPlayingId(null);
@@ -225,7 +202,6 @@ export default function SecureChat() {
             else { setPlayingId(id); setPreviewPlaying(false); }
 
             currentPlayingUrlRef.current = url;
-
             const res = await fetch(url);
             const arrayBuffer = await res.arrayBuffer();
             const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
@@ -243,7 +219,7 @@ export default function SecureChat() {
             source.start(0);
             currentSourceRef.current = source;
         } catch (err) {
-            console.error('Web Audio playback failed:', err);
+            console.error('Playback failed:', err);
             if (isPreview) setPreviewPlaying(false);
             else setPlayingId(null);
             currentPlayingUrlRef.current = null;
@@ -282,162 +258,121 @@ export default function SecureChat() {
         </div>
     );
 
+    const partnerName = bond?.user1_id === user?.id ? bond?.user2_name : bond?.user1_name;
+    const partnerAvatar = bond?.user1_id === user?.id ? bond?.user2_avatar : bond?.user1_avatar;
+
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] relative">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-24 no-scrollbar">
-                <AnimatePresence>
+        <div className="flex-1 flex flex-col relative overflow-hidden h-full">
+            <div className="absolute inset-0 chat-wallpaper z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-black/40 z-0 pointer-events-none" />
+
+            {/* Premium Header Card */}
+            <header className="px-4 pt-4 pb-2 z-20 flex-shrink-0">
+                <div className="glass bg-black/40 backdrop-blur-2xl rounded-[32px] p-3 border border-white/5 flex items-center justify-between shadow-2xl">
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-purple-600 flex items-center justify-center text-white text-xl shadow-lg ring-2 ring-white/10">
+                                {partnerAvatar || '❤️'}
+                            </div>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-black shadow-glow" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-white text-[15px] leading-none uppercase tracking-tight">
+                                {partnerName || 'Partner'}
+                            </h3>
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                                <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">Active Now</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => !isLocked && lockChat()}
+                        className="w-11 h-11 rounded-2xl bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-gray-400 flex items-center justify-center transition-all active:scale-90 border border-white/5"
+                    >
+                        <Heart size={20} className={!isLocked ? 'fill-none' : 'fill-rose-500 text-rose-500'} />
+                    </button>
+                </div>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-7 no-scrollbar pb-80 z-10 relative">
+                <AnimatePresence initial={false}>
                     {messages.length === 0 && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center h-48 gap-3 text-center">
-                            <p className="text-4xl">💞</p>
-                            <p className="text-gray-500 text-sm">Your private universe awaits.<br />Send the first message!</p>
+                        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center h-full gap-4 text-center py-20">
+                            <div className="w-20 h-20 rounded-full bg-accent-soft flex items-center justify-center animate-pulse shadow-2xl" style={{ boxShadow: '0 0 50px var(--accent-glow)' }}>
+                                <p className="text-4xl">💞</p>
+                            </div>
+                            <p className="text-gray-400 text-sm font-medium tracking-wide">Your private universe awaits.<br /><span className="opacity-60">Send the first message!</span></p>
                         </motion.div>
                     )}
                     {messages.map((msg, i) => {
                         const isMe = msg.sender_id === user?.id;
-                        const showAvatar = i === 0 || messages[i - 1].sender_id !== msg.sender_id;
-                        const partnerAvatar = bond?.user1_id === user?.id ? bond?.user2_avatar : bond?.user1_avatar;
-
+                        const showAvatar = !isMe && (i === 0 || messages[i - 1].sender_id !== msg.sender_id);
+                        const isFirstInGroup = i === 0 || messages[i - 1].sender_id !== msg.sender_id;
                         return (
-                            <motion.div
-                                key={msg.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={`flex gap-2 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
-                            >
-                                {/* Partner avatar */}
+                            <motion.div key={msg.id} initial={{ opacity: 0, x: isMe ? 20 : -20, scale: 0.95 }} animate={{ opacity: 1, x: 0, scale: 1 }} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : 'flex-row'} ${isFirstInGroup ? 'mt-4' : 'mt-1'}`}>
                                 {!isMe && (
-                                    <div className="flex-shrink-0 w-8 self-end">
-                                        {showAvatar && (
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-500 to-purple-500 flex items-center justify-center text-sm font-bold text-white shadow-lg">
-                                                {partnerAvatar || '💖'}
-                                            </div>
-                                        )}
+                                    <div className="flex-shrink-0 w-8 self-end mb-1">
+                                        {showAvatar && <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg transition-transform hover:scale-110" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))' }}>{partnerAvatar || '💖'}</div>}
                                     </div>
                                 )}
-
-                                <div
-                                    onDoubleClick={() => handleLoveReact(msg.id)}
-                                    className={`relative group max-w-[75%] rounded-2xl shadow-lg
-                                        ${isMe
-                                            ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-tr-sm'
-                                            : 'bg-white/10 text-white rounded-tl-sm border border-white/5'
-                                        }`}
-                                >
-                                    {/* Voice note */}
+                                <div onDoubleClick={() => handleLoveReact(msg.id)}
+                                    className={`relative group max-w-[85%] rounded-[22px] transition-all duration-300 ${isMe ? `text-white rounded-tr-sm border border-white/10 bubble-shadow-me ${isFirstInGroup ? 'bubble-nip-me' : ''}` : `text-white rounded-tl-sm border border-white/10 backdrop-blur-md bubble-shadow-partner bg-zinc-900/60 ${isFirstInGroup ? 'bubble-nip-partner' : ''}`}`}
+                                    style={isMe ? { background: 'linear-gradient(135deg, #f43f5e, #9333ea)' } : {}}>
                                     {msg.message_type === 'voice' && msg.media_url ? (
-                                        <div className="flex items-center gap-3 px-4 py-3 min-w-[160px]">
-                                            <button
-                                                onClick={() => togglePlayVoice(msg.id, msg.media_url!)}
-                                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isMe ? 'bg-white/20 hover:bg-white/30' : 'bg-rose-500/20 hover:bg-rose-500/30'}`}
-                                            >
-                                                {playingId === msg.id ? <Pause size={14} /> : <Play size={14} />}
+                                        <div className="flex items-center gap-3 px-4 py-3 min-w-[200px]">
+                                            <button onClick={() => togglePlayVoice(msg.id, msg.media_url!)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isMe ? 'bg-white/20 hover:bg-white/30' : 'bg-rose-500/20 hover:bg-rose-500/30'}`}>
+                                                {playingId === msg.id ? <Pause size={16} /> : <Play size={16} fill="currentColor" />}
                                             </button>
-                                            <div className="flex gap-0.5 items-center flex-1">
-                                                {Array.from({ length: 20 }).map((_, j) => {
-                                                    // Stable height seeded from message id so it doesn't re-randomize on re-render
-                                                    const seed = (msg.id.charCodeAt(j % msg.id.length) + j * 13) % 14;
-                                                    return <div key={j} className={`w-0.5 rounded-full ${playingId === msg.id ? 'bg-white animate-pulse' : isMe ? 'bg-white/60' : 'bg-white/40'}`}
-                                                        style={{ height: `${4 + seed}px` }} />;
+                                            <div className="flex gap-1 items-center flex-1">
+                                                {Array.from({ length: 24 }).map((_, j) => {
+                                                    const seed = (msg.id.charCodeAt(j % msg.id.length) + j * 17) % 16;
+                                                    return <div key={j} className={`w-0.5 rounded-full transition-all duration-300 ${playingId === msg.id ? 'bg-white animate-pulse' : isMe ? 'bg-white/60' : 'bg-rose-500'}`} style={{ height: `${4 + seed}px` }} />;
                                                 })}
                                             </div>
-                                            <Mic size={12} className="opacity-60" />
+                                            <Mic size={14} className="opacity-40" />
                                         </div>
                                     ) : (
-                                        <p className="px-4 py-2.5 text-[15px] leading-relaxed">{msg.message}</p>
+                                        <p className="px-5 py-3.5 text-[15px] leading-[1.6] font-medium break-words whitespace-pre-wrap">{msg.message}</p>
                                     )}
-
-                                    {/* Timestamp row */}
-                                    <div className={`flex items-center gap-1 px-4 pb-2 -mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                        {msg.is_pinned && <Pin size={9} className="text-yellow-300 rotate-45" />}
-                                        {msg.is_disappearing && <Clock size={9} className="opacity-60" />}
-                                        <span className={`text-[10px] ${isMe ? 'text-rose-200/70' : 'text-gray-400/70'}`}>
-                                            {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
+                                    <div className={`flex items-center gap-2 px-5 pb-3 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                        {msg.is_pinned && <Pin size={10} className="text-yellow-300 -rotate-45" />}
+                                        <span className={`text-[9px] font-black tracking-widest uppercase opacity-40 ${isMe ? 'text-white' : 'text-gray-400'}`}>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
-
-                                    {/* Reactions bubble */}
-                                    {msg.reactions && msg.reactions.length > 0 && (
-                                        <div className={`absolute -bottom-4 ${isMe ? 'right-2' : 'left-2'} bg-black/60 backdrop-blur-md rounded-full px-1.5 py-0.5 text-xs border border-white/10 z-10 flex gap-0.5`}>
-                                            {msg.reactions.map((e, idx) => <span key={idx}>{e}</span>)}
-                                        </div>
-                                    )}
-
-                                    {/* Pin hover button */}
-                                    {!msg.is_pinned && (
-                                        <button
-                                            onClick={() => handlePinMessage(msg.id)}
-                                            className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-1.5 rounded-full backdrop-blur-xl border border-white/10 ${isMe ? '-left-10' : '-right-10'}`}
-                                        >
-                                            <Pin size={12} className="text-gray-300" />
-                                        </button>
-                                    )}
+                                    {msg.reactions && msg.reactions.length > 0 && <div className={`absolute -bottom-3 ${isMe ? 'right-4' : 'left-4'} bg-zinc-900 border border-white/10 rounded-full px-2 py-0.5 text-[10px] shadow-2xl flex gap-1 z-10 scale-110`}>{Array.from(new Set(msg.reactions)).map((e, idx) => <span key={idx}>{e}</span>)}</div>}
                                 </div>
                             </motion.div>
                         );
                     })}
                 </AnimatePresence>
-                <div ref={bottomRef} />
+                <div ref={bottomRef} className="h-4" />
             </div>
 
-            {/* Input bar */}
-            <div className="absolute bottom-4 left-0 w-full px-4 z-20">
+            {/* Input Bar */}
+            <div className="absolute bottom-32 left-0 right-0 px-4 z-20">
                 <AnimatePresence mode="wait">
-                    {/* Voice recorded — preview */}
                     {audioBlob && !isRecording ? (
-                        <motion.div key="preview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                            className="glass rounded-full px-4 py-3 flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-rose-500/20">
-                            {/* Preview play button — uses local blob URL directly */}
-                            <button onClick={togglePreviewPlay}
-                                className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400 hover:bg-rose-500/40 transition-colors shrink-0">
-                                {previewPlaying ? <Pause size={14} /> : <Play size={14} />}
-                            </button>
-                            <span className="text-gray-400 text-sm flex-1">Voice note recorded</span>
-                            <button onClick={cancelRecording} className="text-gray-500 text-xs hover:text-gray-300 px-2">Cancel</button>
-                            <button onClick={sendVoiceNote} className="bg-rose-500 text-white px-4 py-1.5 rounded-full text-sm font-bold hover:bg-rose-400 transition-colors">Send</button>
+                        <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-[32px] p-3 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-2xl border border-accent/30 shadow-2xl animate-breathing-glow">
+                            <button onClick={togglePreviewPlay} className="w-10 h-10 rounded-2xl bg-accent-soft flex items-center justify-center text-accent hover:bg-accent/20 transition-all shrink-0">{previewPlaying ? <Pause size={18} /> : <Play size={18} fill="currentColor" />}</button>
+                            <div className="flex-1 flex flex-col gap-0.5"><span className="text-white text-xs font-bold uppercase tracking-widest opacity-80">Recording Ready</span><span className="text-gray-500 text-[10px]">Tap send to share your whisper</span></div>
+                            <button onClick={cancelRecording} className="text-gray-500 text-xs font-bold hover:text-white px-3 h-10 transition-colors">Discard</button>
+                            <button onClick={sendVoiceNote} className="px-6 h-10 rounded-2xl text-white text-sm font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95" style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}>Send</button>
                         </motion.div>
                     ) : isRecording ? (
-                        /* Recording in progress */
-                        <motion.div key="recording" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                            className="glass rounded-full px-4 py-3 flex items-center gap-3 bg-black/60 backdrop-blur-xl border border-rose-500/40">
-                            <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1, repeat: Infinity }}
-                                className="w-3 h-3 bg-rose-500 rounded-full" />
-                            <span className="text-rose-400 font-mono text-sm flex-1">{formatTime(recordingTime)}</span>
-                            <button onClick={cancelRecording} className="text-gray-500 p-2 hover:text-gray-300"><MicOff size={18} /></button>
-                            <button onClick={stopRecording} className="bg-rose-500 text-white p-2 rounded-full hover:bg-rose-400 transition-colors">
-                                <Square size={14} fill="white" />
-                            </button>
+                        <motion.div key="recording" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="rounded-[32px] p-3 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-2xl border border-accent/50 shadow-2xl animate-breathing-glow ring-2 ring-accent/10">
+                            <div className="relative w-10 h-10 flex items-center justify-center"><motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0.2, 0.5] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute inset-0 bg-accent rounded-full" /><div className="z-10 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_white]" /></div>
+                            <div className="flex-1"><span className="text-accent font-black font-mono text-lg tracking-widest">{formatTime(recordingTime)}</span><p className="text-gray-500 text-[10px] uppercase font-bold tracking-widest">Speaking Now...</p></div>
+                            <button onClick={cancelRecording} className="text-white/40 p-3 hover:text-white transition-colors"><MicOff size={20} /></button>
+                            <button onClick={stopRecording} className="bg-accent text-white p-3 rounded-2xl hover:scale-105 transition-all shadow-lg active:scale-90" style={{ boxShadow: '0 0 20px var(--accent-glow)' }}><Square size={16} fill="white" /></button>
                         </motion.div>
                     ) : (
-                        /* Normal input */
-                        <motion.form key="input" onSubmit={handleSend} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                            className="glass rounded-full p-1.5 flex items-center pr-2 shadow-2xl border-white/10 bg-black/50 backdrop-blur-xl">
-                            <button
-                                type="button"
-                                onClick={() => setIsDisappearing(!isDisappearing)}
-                                className={`p-2 transition-colors ${isDisappearing ? 'text-purple-400' : 'text-gray-500 hover:text-purple-400'}`}
-                                title={isDisappearing ? 'Disappearing: ON' : 'Disappearing: OFF'}
-                            >
-                                <Clock size={19} />
-                            </button>
-                            <input
-                                type="text"
-                                value={input}
-                                onChange={e => setInput(e.target.value)}
-                                placeholder={isDisappearing ? '🕐 Disappearing message...' : 'Whisper something...'}
-                                className="flex-1 bg-transparent border-none focus:outline-none text-white px-2 placeholder:text-gray-600 text-[15px]"
-                            />
-                            {input.trim() ? (
-                                <motion.button initial={{ scale: 0.8 }} animate={{ scale: 1 }} type="submit"
-                                    className="bg-rose-500 hover:bg-rose-400 text-white p-2.5 rounded-full active:scale-95 shadow-[0_0_15px_rgba(225,29,72,0.4)]">
-                                    <Send size={17} className="translate-x-0.5" />
-                                </motion.button>
+                        <motion.form key="input" onSubmit={handleSend} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-[32px] p-1.5 flex items-center bg-zinc-900/60 backdrop-blur-3xl border border-white/10 shadow-2xl relative group focus-within:border-accent/30 transition-all mx-1 gap-1 input-focus-glow">
+                            <button type="button" onClick={() => setIsDisappearing(!isDisappearing)} className={`p-3 transition-all rounded-2xl ${isDisappearing ? 'text-accent bg-accent-soft' : 'text-white/30 hover:text-white hover:bg-white/5'}`}><Clock size={20} className={isDisappearing ? 'animate-pulse' : ''} /></button>
+                            <input type="text" value={input} onChange={e => setInput(e.target.value)} placeholder={isDisappearing ? 'TIMED MESSAGE...' : 'Whisper something...'} className="flex-1 bg-transparent border-none focus:outline-none text-white px-4 placeholder:text-white/20 text-[16px] font-medium min-w-0" />
+                            <div className="flex items-center pr-1">{input.trim() ? (
+                                <motion.button initial={{ scale: 0.8, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} type="submit" className="w-11 h-11 flex items-center justify-center text-white rounded-2xl active:scale-94 shadow-xl transition-all" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}><Send size={18} className="translate-x-0.5" /></motion.button>
                             ) : (
-                                <button type="button" onMouseDown={startRecording}
-                                    className="p-2.5 text-rose-400 hover:text-rose-300 transition-colors bg-white/5 rounded-full active:bg-rose-500/20">
-                                    <Mic size={18} />
-                                </button>
-                            )}
+                                <button type="button" onPointerDown={(e) => { e.preventDefault(); startRecording(); }} onPointerUp={(e) => { e.preventDefault(); stopRecording(); }} onPointerLeave={(e) => { if (isRecording) stopRecording(); }} className={`w-11 h-11 flex items-center justify-center rounded-2xl transition-all shadow-lg active:scale-95 ${isRecording ? 'bg-accent text-white' : 'text-accent bg-accent-soft hover:bg-accent/20'}`} style={{ boxShadow: isRecording ? '0 0 20px var(--accent-glow)' : '0 4px 15px var(--accent-glow)' }}><Mic size={20} /></button>
+                            )}</div>
                         </motion.form>
                     )}
                 </AnimatePresence>

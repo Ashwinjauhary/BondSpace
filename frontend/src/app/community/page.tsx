@@ -48,12 +48,11 @@ export default function CommunityPage() {
     if (loading) return <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-rose-500" /></div>;
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)]">
-            <header className="p-4 mx-4 mt-4 mb-2">
-                <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-purple-400 flex items-center gap-2">
-                    <Globe2 size={28} className="text-rose-400" /> Secure Connect
-                </h2>
-                <p className="text-gray-400 text-sm mt-1">Join interest-based communities & chat securely.</p>
+        <div className="flex-1 flex flex-col bg-[#080808] overflow-hidden">
+            <header className="p-4 mx-4 mt-4 mb-4 flex justify-between items-center bg-black/40 glass rounded-3xl border border-white/5">
+                <div className="min-w-0">
+                    <Globe2 size={24} className="text-accent" />
+                </div>
             </header>
 
             <AnimatePresence mode="wait">
@@ -63,7 +62,7 @@ export default function CommunityPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex-1 flex flex-col mx-4 mb-4 glass rounded-3xl overflow-hidden border-rose-500/20 shadow-[0_0_30px_rgba(225,29,72,0.1)] relative"
+                        className="flex-1 flex flex-col overflow-hidden relative"
                     >
                         <CommunityChat community={activeCommunity} onBack={() => setActiveCommunity(null)} />
                     </motion.div>
@@ -73,7 +72,7 @@ export default function CommunityPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 no-scrollbar"
+                        className="flex-1 overflow-y-auto px-4 pb-44 space-y-4 no-scrollbar"
                     >
                         {/* Soul Connect Feature Card */}
                         <div
@@ -218,49 +217,66 @@ function CommunityChat({ community, onBack }: { community: any, onBack: () => vo
     };
 
     return (
-        <div className="flex flex-col h-full relative">
-            {/* Header */}
-            <div className="p-4 border-b border-white/10 bg-black/40 backdrop-blur-xl flex justify-between items-center z-20">
-                <div className="flex items-center gap-3">
-                    <button onClick={onBack} className="p-1.5 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 text-gray-400">
-                        <ArrowLeft size={16} />
-                    </button>
-                    <div>
-                        <h3 className="font-bold text-white leading-tight">{community.name}</h3>
-                        <p className="text-[10px] text-gray-400">{community.member_count} members</p>
+        <div className="flex flex-col h-full relative overflow-hidden">
+            {/* Premium Wallpaper Backdrop */}
+            <div className="absolute inset-0 chat-wallpaper z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-black/60 z-0 pointer-events-none" />
+
+            {/* Premium Header Card */}
+            <header className="px-4 pt-4 pb-2 z-20 flex-shrink-0">
+                <div className="glass bg-black/40 backdrop-blur-2xl rounded-[32px] p-3 border border-white/5 flex items-center justify-between shadow-2xl">
+                    <div className="flex items-center gap-3">
+                        <button onClick={onBack} className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 text-gray-400 transition-all active:scale-90">
+                            <ArrowLeft size={18} />
+                        </button>
+                        <div>
+                            <p className="text-[10px] text-accent font-black uppercase tracking-widest leading-none mb-1">Community Hub</p>
+                            <h3 className="font-bold text-white text-[15px] leading-none uppercase tracking-tight">{community.name}</h3>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-end px-3">
+                        <span className="text-[10px] text-emerald-400 font-black tracking-widest uppercase">{community.member_count} Members</span>
+                        <div className="flex items-center gap-1 mt-1">
+                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-glow" />
+                            <span className="text-[8px] text-gray-500 font-bold uppercase tracking-tighter">Live Chat</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </header>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 space-y-7 pb-80 no-scrollbar z-10 relative">
                 {messages.length === 0 && (
-                    <div className="text-center text-gray-500 text-sm py-10">
+                    <div className="text-center text-gray-500 text-sm py-10 glass rounded-2xl mx-10 border-white/5">
                         Welcome to {community.name}! Be the first to say hi 👋
                     </div>
                 )}
 
                 {messages.map((msg, i) => {
                     const isMe = msg.user_id === user?.id;
-                    const showAvatar = i === 0 || messages[i - 1].user_id !== msg.user_id;
+                    const showName = !isMe && (i === 0 || messages[i - 1].user_id !== msg.user_id);
+                    const isFirstInGroup = i === 0 || messages[i - 1].user_id !== msg.user_id;
 
                     return (
                         <motion.div
                             key={msg.id}
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                            className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} ${isFirstInGroup ? 'mt-4' : 'mt-1'}`}
                         >
-                            {!isMe && showAvatar && (
-                                <span className="text-[10px] text-gray-400 ml-1 mb-1 font-medium">{msg.user_name}</span>
+                            {!isMe && showName && (
+                                <span className="text-[10px] text-gray-400 ml-1 mb-1 font-bold uppercase tracking-wider">{msg.user_name}</span>
                             )}
-                            <div className={`px-4 py-2.5 rounded-2xl max-w-[80%] text-[15px] shadow-sm
+                            <div className={`px-4 py-3.5 rounded-[22px] max-w-[85%] text-[15px] shadow-lg transition-all duration-300 relative
                                 ${isMe
-                                    ? 'bg-indigo-500 text-white rounded-tr-sm'
-                                    : 'bg-white/10 border border-white/10 text-gray-100 rounded-tl-sm'
+                                    ? `text-white rounded-tr-sm border border-white/10 bubble-shadow-me ${isFirstInGroup ? 'bubble-nip-me' : ''}`
+                                    : `bg-zinc-900/60 border border-white/10 text-gray-100 rounded-tl-sm backdrop-blur-md bubble-shadow-partner ${isFirstInGroup ? 'bubble-nip-partner' : ''}`
                                 }`}
+                                style={isMe ? {
+                                    background: 'linear-gradient(135deg, #f43f5e, #9333ea)',
+                                } : {}}
                             >
-                                <p>{msg.message}</p>
+                                <p className="leading-[1.6] font-medium break-words whitespace-pre-wrap">{msg.message}</p>
                             </div>
                         </motion.div>
                     );
@@ -269,19 +285,20 @@ function CommunityChat({ community, onBack }: { community: any, onBack: () => vo
             </div>
 
             {/* Input Form */}
-            <div className="absolute bottom-4 left-4 right-4 z-20">
-                <form onSubmit={handleSend} className="glass rounded-2xl p-1.5 flex items-center pr-2 shadow-2xl border-indigo-500/20 bg-black/60 backdrop-blur-xl">
+            <div className="absolute bottom-32 left-4 right-4 z-20">
+                <form onSubmit={handleSend} className="glass rounded-[32px] p-1.5 flex items-center gap-1 shadow-2xl border-indigo-500/20 bg-black/60 backdrop-blur-xl input-focus-glow">
                     <input
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={`Message ${community.name}...`}
-                        className="flex-1 bg-transparent border-none focus:outline-none text-white px-3"
+                        className="flex-1 bg-transparent border-none focus:outline-none text-white px-4 min-w-0 font-medium"
                     />
                     <button
                         type="submit"
                         disabled={!input.trim()}
-                        className="bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white p-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.4)]"
+                        className="w-11 h-11 text-white rounded-2xl transition-all active:scale-94 disabled:opacity-50 shrink-0 mr-0.5 flex items-center justify-center"
+                        style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}
                     >
                         <Send size={16} className="translate-x-0.5" />
                     </button>

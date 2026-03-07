@@ -49,28 +49,26 @@ export default function GalleryPage() {
     };
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)]">
-            <header className="p-4 mx-4 mt-4 mb-2 flex justify-between items-center">
-                <div>
-                    <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-purple-400 flex items-center gap-2">
-                        <ImageIcon size={28} className="text-rose-400" /> Space
-                    </h2>
-                    <p className="text-gray-400 text-sm mt-1">Your private memory cloud.</p>
+        <div className="flex-1 flex flex-col bg-[#080808] overflow-hidden relative">
+            <header className="p-4 mx-4 mt-4 mb-4 flex justify-between items-center bg-black/40 glass rounded-3xl border border-white/5">
+                <div className="min-w-0">
+                    <ImageIcon size={24} className="text-accent" />
                 </div>
-                <div className="flex items-center gap-2">
-                    <Link href="/bond-tree" className="bg-rose-500/10 text-rose-400 px-4 py-2 rounded-2xl border border-rose-500/20 text-xs font-bold hover:bg-rose-500 hover:text-white transition-all flex items-center gap-2">
-                        <Star size={14} className="fill-current" /> View Bond Tree
+                <div className="flex items-center gap-2 shrink-0">
+                    <Link href="/bond-tree" className="bg-accent-soft text-accent px-3 h-10 rounded-2xl border border-accent/20 text-[10px] font-black uppercase tracking-widest hover:bg-accent hover:text-white transition-all flex items-center gap-2">
+                        <Star size={14} className="fill-current" /> Tree
                     </Link>
                     <button
                         onClick={handleCreateAlbum}
-                        className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-400 text-white flex items-center justify-center transition-all shadow-[0_0_15px_rgba(225,29,72,0.4)] glow-rose"
+                        className="w-10 h-10 rounded-full text-white flex items-center justify-center transition-all shadow-lg active:scale-90"
+                        style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}
                     >
                         <Plus size={20} />
                     </button>
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 no-scrollbar">
+            <div className="flex-1 overflow-y-auto px-4 pb-60 space-y-4 no-scrollbar">
                 {/* Memory Reel Highlight */}
                 <div className="glass rounded-3xl p-4 border-rose-500/20 relative overflow-hidden bg-black/60 shadow-lg group cursor-pointer">
                     <img
@@ -106,7 +104,7 @@ export default function GalleryPage() {
                                     {album.cover_url ? (
                                         <img src={album.cover_url} alt={album.title} className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" />
                                     ) : (
-                                        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/20 to-purple-500/20 flex items-center justify-center">
+                                        <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'linear-gradient(to br, var(--accent-soft), transparent)' }}>
                                             <ImageIcon size={32} className="text-white/20" />
                                         </div>
                                     )}

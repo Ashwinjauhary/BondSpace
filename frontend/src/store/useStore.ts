@@ -95,11 +95,12 @@ export const useStore = create<StoreState>((set, get) => ({
         });
 
         newSocket.on('connect', () => {
-            console.log('Socket connected 🔌');
+            // Only log if it's a significant event, or use debug to keep console clean
+            if (!get().socket) console.debug('Socket connected 🔌');
         });
 
         newSocket.on('disconnect', (reason) => {
-            console.log('Socket disconnected 🔴 Reason:', reason);
+            console.debug('Socket disconnected:', reason);
             // If disconnected due to server-side issues, it will auto-reconnect
         });
 

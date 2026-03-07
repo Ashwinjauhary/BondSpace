@@ -104,53 +104,68 @@ export default function AnonymousChat({ chat_id, onEnd }: { chat_id: string, onE
     );
 
     return (
-        <div className="flex flex-col h-full bg-black/40 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden">
-            {/* Header */}
-            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center border border-white/10">
-                        <User size={20} className="text-gray-400" />
+        <div className="flex flex-col h-full bg-black/40 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden relative">
+            {/* Premium Wallpaper Backdrop */}
+            <div className="absolute inset-0 chat-wallpaper z-0 pointer-events-none" />
+            <div className="absolute inset-0 bg-black/60 z-0 pointer-events-none" />
+
+            {/* Premium Header Card */}
+            <header className="px-4 pt-4 pb-2 z-20 flex-shrink-0">
+                <div className="glass bg-black/40 backdrop-blur-2xl rounded-[32px] p-3 border border-white/5 flex items-center justify-between shadow-2xl">
+                    <div className="flex items-center gap-3">
+                        <div className="relative">
+                            <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center border border-white/10 shadow-lg">
+                                <User size={22} className="text-gray-400" />
+                            </div>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-black" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-emerald-400 font-black uppercase tracking-widest flex items-center gap-1.5 leading-none mb-1">
+                                <Shield size={10} /> Safe & Private
+                            </p>
+                            <h3 className="font-bold text-white text-[15px] leading-none uppercase tracking-tight">Stranger</h3>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-bold text-white text-sm">Anonymous Soul</h3>
-                        <p className="text-[10px] text-emerald-400 flex items-center gap-1">
-                            <Shield size={10} /> End-to-End Private
-                        </p>
-                    </div>
+                    <button
+                        onClick={endChat}
+                        className="w-11 h-11 rounded-2xl bg-white/5 hover:bg-rose-500/20 hover:text-rose-400 text-gray-400 flex items-center justify-center transition-all active:scale-90 border border-white/5"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
-                <button
-                    onClick={endChat}
-                    className="p-2 hover:bg-rose-500/20 rounded-full text-gray-400 hover:text-rose-400 transition-colors"
-                >
-                    <X size={20} />
-                </button>
-            </div>
+            </header>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 space-y-7 no-scrollbar pb-80 z-10 relative">
                 <div className="text-center py-4">
-                    <div className="inline-flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 mb-2">
+                    <div className="inline-flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10 mb-2 backdrop-blur-md">
                         <Sparkles size={14} className="text-yellow-400" />
                         <span className="text-[11px] text-gray-400 font-medium">You've been matched! Say hello.</span>
                     </div>
                 </div>
 
                 <AnimatePresence>
-                    {messages.map((msg) => {
+                    {messages.map((msg, i) => {
                         const isMe = msg.sender_id === user?.id;
+                        const isFirstInGroup = i === 0 || messages[i - 1].sender_id !== msg.sender_id;
+
                         return (
                             <motion.div
                                 key={msg.id}
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                                className={`flex ${isMe ? 'justify-end' : 'justify-start'} ${isFirstInGroup ? 'mt-4' : 'mt-1'}`}
                             >
-                                <div className={`max-w-[80%] px-4 py-3 rounded-2xl shadow-lg ${isMe
-                                    ? 'bg-rose-600 text-white rounded-tr-sm'
-                                    : 'bg-white/10 text-white rounded-tl-sm border border-white/5'
-                                    }`}>
-                                    <p className="text-sm leading-relaxed">{msg.message}</p>
-                                    <p className={`text-[9px] mt-1 opacity-50 ${isMe ? 'text-right' : 'text-left'}`}>
+                                <div className={`max-w-[85%] px-4 py-3.5 rounded-[22px] shadow-lg transition-all duration-300 relative ${isMe
+                                    ? `text-white rounded-tr-sm border border-white/10 bubble-shadow-me ${isFirstInGroup ? 'bubble-nip-me' : ''}`
+                                    : `text-white rounded-tl-sm border border-white/10 backdrop-blur-md bubble-shadow-partner bg-zinc-900/60 ${isFirstInGroup ? 'bubble-nip-partner' : ''}`
+                                    }`}
+                                    style={isMe ? {
+                                        background: 'linear-gradient(135deg, #f43f5e, #9333ea)',
+                                    } : {}}
+                                >
+                                    <p className="text-[15px] leading-[1.6] font-medium break-words whitespace-pre-wrap">{msg.message}</p>
+                                    <p className={`text-[9px] mt-2 font-black tracking-widest uppercase opacity-40 ${isMe ? 'text-right text-white' : 'text-left text-gray-400'}`}>
                                         {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </p>
                                 </div>
@@ -162,22 +177,24 @@ export default function AnonymousChat({ chat_id, onEnd }: { chat_id: string, onE
             </div>
 
             {/* Input */}
-            <form onSubmit={handleSend} className="p-4 bg-white/5 border-t border-white/5 flex gap-2">
-                <input
-                    type="text"
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    placeholder="Type anonymously..."
-                    className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-rose-500/50"
-                />
-                <button
-                    type="submit"
-                    disabled={!input.trim()}
-                    className="w-12 h-12 bg-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg hover:bg-rose-500 disabled:opacity-50 transition-all"
-                >
-                    <Send size={20} />
-                </button>
-            </form>
+            <div className="absolute bottom-32 left-4 right-4 z-20">
+                <form onSubmit={handleSend} className="glass rounded-[32px] p-1.5 flex items-center gap-1 shadow-2xl border-rose-500/20 bg-black/60 backdrop-blur-xl input-focus-glow">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        placeholder="Type anonymously..."
+                        className="flex-1 bg-transparent border-none focus:outline-none text-white px-4 placeholder:text-white/20 text-[16px] font-medium min-w-0"
+                    />
+                    <button
+                        type="submit"
+                        disabled={!input.trim()}
+                        className="w-11 h-11 bg-rose-600 rounded-2xl flex items-center justify-center text-white shadow-lg hover:bg-rose-500 disabled:opacity-50 transition-all shrink-0 mr-0.5 active:scale-94"
+                    >
+                        <Send size={18} className="translate-x-0.5" />
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }

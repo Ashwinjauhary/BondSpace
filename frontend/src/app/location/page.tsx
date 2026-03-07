@@ -26,7 +26,7 @@ const FreeMap = dynamic(() => import('@/components/location/FreeMapComponent'), 
     ssr: false,
     loading: () => (
         <div className="w-full h-full bg-black/50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-rose-500" />
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent" />
         </div>
     )
 });
@@ -37,8 +37,8 @@ const GlobeView = dynamic(() => import('@/components/location/GlobeComponent'), 
     loading: () => (
         <div className="w-full h-full bg-[#000010] flex items-center justify-center">
             <div className="animate-pulse flex flex-col items-center">
-                <GlobeIcon size={32} className="text-rose-500 mb-2 animate-spin" style={{ animationDuration: '3s' }} />
-                <span className="text-white/50 text-xs tracking-widest uppercase">Loading Universe...</span>
+                <GlobeIcon size={32} className="text-accent mb-2 animate-spin" style={{ animationDuration: '3s' }} />
+                <span className="text-white/50 text-[10px] font-black tracking-widest uppercase">Loading Universe...</span>
             </div>
         </div>
     )
@@ -124,7 +124,6 @@ export default function LocationPage() {
                 setIsRequestingDisable(false);
             }, 3000);
         });
-
         // ... (navigator.geolocation update remain same)
         const interval = setInterval(() => {
             if (navigator.geolocation) {
@@ -229,7 +228,7 @@ export default function LocationPage() {
     };
 
     return (
-        <div className={`flex flex-col h-[calc(100vh-100px)] transition-all duration-300 ${showNudgeAnim ? 'bg-rose-500/20' : ''}`}>
+        <div className={`flex-1 flex flex-col bg-[#080808] transition-all duration-300 ${showNudgeAnim ? 'bg-accent/20' : ''}`}>
             {showNudgeAnim && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
                     <Heart size={120} className="text-rose-500 animate-ping opacity-75" />
@@ -334,89 +333,77 @@ export default function LocationPage() {
                 )}
             </AnimatePresence>
 
-            <header className="p-4 glass mt-4 mx-4 rounded-3xl z-30 shadow-lg border-white/5 relative bg-black/40">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-purple-400 flex items-center gap-2">
-                        <Navigation size={20} className="text-rose-400" /> Live Sync
+            <header className="p-4 glass mx-4 mt-4 rounded-3xl z-30 shadow-lg border-white/5 relative bg-black/40">
+                <div className="flex items-center justify-between gap-4">
+                    <h2 className="text-xl font-black tracking-tighter text-white flex items-center gap-2">
+                        <Navigation size={20} className="text-accent" /> Live Sync
                     </h2>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         {/* Sharing Toggle */}
                         <button
                             onClick={toggleSharing}
-                            className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${sharingStatus
-                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                : 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border ${sharingStatus
+                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'
+                                : 'bg-accent/15 text-accent border-accent/20'
                                 }`}
                         >
                             {sharingStatus ? <ShieldCheck size={12} /> : <ShieldAlert size={12} />}
-                            {sharingStatus ? "Sharing On" : "Sharing Off"}
+                            {sharingStatus ? "Live" : "Ghost"}
                         </button>
 
                         {distance && (
-                            <div className="text-xs font-semibold text-rose-300 bg-rose-500/10 px-3 py-1 rounded-full border border-rose-500/20">
-                                {distance} km apart
+                            <div className="text-[10px] font-black uppercase tracking-widest text-accent bg-accent-soft px-3 py-1.5 rounded-full border border-accent/20">
+                                {distance} km
                             </div>
                         )}
                     </div>
                 </div>
 
                 {partnerLocation && (
-                    <div className="flex items-center gap-4 mt-3">
-                        <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full text-xs font-medium text-gray-300 border border-white/10">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-rose-500 flex items-center justify-center text-[10px] text-white overflow-hidden shadow-inner">
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
+                        <div className="flex items-center gap-2 bg-white/5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-gray-300 border border-white/10">
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] text-white overflow-hidden shadow-inner" style={{ background: 'linear-gradient(135deg, var(--accent), var(--accent-secondary))' }}>
                                 {bond?.user2_name?.[0] || 'P'}
                             </div>
-                            <span>{bond?.user2_name || 'Partner'}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 bg-emerald-500/10 px-3 py-1.5 rounded-full text-xs font-medium text-emerald-400 border border-emerald-500/20">
-                            <MapPin size={12} /> Live
+                            <span className="max-w-[60px] truncate">{bond?.user2_name || 'Partner'}</span>
                         </div>
 
                         {partnerLocation.battery_level && (
-                            <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1.5 rounded-full text-xs font-medium text-gray-300 border border-white/10 ml-auto">
-                                {partnerLocation.battery_level > 20 ? <Battery size={14} className="text-emerald-400" /> : <BatteryCharging size={14} className="text-rose-500 animate-pulse" />}
+                            <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-gray-300 border border-white/10">
+                                {partnerLocation.battery_level > 20 ? <Battery size={12} className="text-emerald-400" /> : <BatteryCharging size={12} className="text-accent animate-pulse" />}
                                 {partnerLocation.battery_level}%
                             </div>
                         )}
 
                         {/* Interactive Features Group */}
-                        <div className="flex gap-2 ml-2">
+                        <div className="flex gap-1.5 ml-auto">
                             <button
                                 onClick={handleNudge}
-                                className="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 rounded-full transition-colors border border-rose-500/30"
-                                title="Send Nudge"
+                                className="p-2 bg-accent-soft hover:bg-accent/20 rounded-xl transition-all border border-accent/10 active:scale-90"
+                                title="Send Zap"
                             >
-                                <Zap size={16} className="text-rose-400" />
-                            </button>
-                            <button
-                                onClick={findMidpoint}
-                                className="p-1.5 bg-purple-500/10 hover:bg-purple-500/20 rounded-full transition-colors border border-purple-500/30"
-                                title="Find Meetup Spot"
-                            >
-                                <MapIcon size={16} className="text-purple-400" />
+                                <Zap size={15} className="text-accent" />
                             </button>
                             <button
                                 onClick={() => setViewMode(viewMode === '2d' ? '3d' : '2d')}
-                                className="p-1.5 bg-sky-500/10 hover:bg-sky-500/20 rounded-full transition-colors border border-sky-500/30"
-                                title={viewMode === '2d' ? 'Switch to 3D Globe' : 'Switch to 2D Map'}
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 active:scale-90"
+                                title={viewMode === '2d' ? '3d' : '2d'}
                             >
-                                {viewMode === '2d' ? <GlobeIcon size={16} className="text-sky-400" /> : <MapIcon size={16} className="text-sky-400" />}
+                                {viewMode === '2d' ? <GlobeIcon size={15} className="text-gray-400" /> : <MapIcon size={15} className="text-gray-400" />}
                             </button>
                             <button
                                 onClick={() => setIsTimelineOpen(true)}
-                                className="p-1.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-white/10"
-                                title="Travel History"
+                                className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 active:scale-90"
                             >
-                                <History size={16} className="text-gray-300" />
+                                <History size={15} className="text-gray-400" />
                             </button>
                         </div>
                     </div>
                 )}
             </header>
 
-            <div className="flex-1 mt-4 mx-4 mb-4 rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative glow-rose">
+            <div className="flex-1 mt-4 mx-4 mb-4 rounded-[2rem] overflow-hidden border border-white/10 relative flex flex-col" style={{ boxShadow: '0 0 40px var(--accent-glow)' }}>
                 {viewMode === '2d' ? (
                     <FreeMap
                         partnerLocation={partnerLocation}

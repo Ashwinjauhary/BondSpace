@@ -74,12 +74,12 @@ const getActiveSession = async (req, res) => {
             // If session is broken, abandon it and tell frontend no active session
             if (!state.questions || state.questions.length === 0) {
                 await query('UPDATE game_sessions SET status=$1 WHERE id=$2', ['abandoned', session.id]);
-                return res.status(404).json({ error: 'No active session' });
+                return res.json({ session: null });
             }
 
             res.json({ session });
         } else {
-            res.status(404).json({ error: 'No active session' });
+            res.json({ session: null });
         }
     } catch (err) {
         res.status(500).json({ error: 'Failed to find active session' });

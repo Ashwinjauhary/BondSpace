@@ -112,19 +112,17 @@ export default function GamesPage() {
     }
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)]">
-            <header className="p-4 mx-4 mt-4 mb-2 flex justify-between items-end">
-                <div>
-                    <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-purple-400 flex items-center gap-2">
-                        <Gamepad2 size={28} className="text-rose-400" /> Love Arena
-                    </h2>
-                    <p className="text-gray-400 text-sm mt-1">Play games, earn Love XP, and connect deeply.</p>
+        <div className="flex-1 flex flex-col bg-[#080808] p-4 overflow-hidden relative">
+            <header className="p-4 mx-4 mt-4 mb-4 flex justify-between items-center bg-black/40 glass rounded-3xl border border-white/5">
+                <div className="min-w-0">
+                    <Gamepad2 size={24} className="text-accent" />
                 </div>
                 <button
                     onClick={handleCheckIn}
-                    className="px-4 py-2 bg-rose-500/10 text-rose-300 text-xs font-bold rounded-xl border border-rose-500/30 hover:bg-rose-500/20 transition-all font-sans tracking-wide"
+                    className="px-4 h-10 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl transition-all shadow-lg active:scale-95 shrink-0"
+                    style={{ background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))', boxShadow: '0 4px 15px var(--accent-glow)' }}
                 >
-                    Daily Check-in
+                    Check-in
                 </button>
             </header>
 
@@ -146,7 +144,7 @@ export default function GamesPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 no-scrollbar"
+                        className="flex-1 overflow-y-auto px-4 pb-60 space-y-4 no-scrollbar"
                     >
                         {/* Top Stats Card */}
                         <div className="glass rounded-3xl p-5 border-white/5 bg-gradient-to-br from-purple-900/40 to-black/60 relative overflow-hidden">

@@ -101,22 +101,16 @@ export default function AIPlannerPage() {
     if (!isAuthenticated) return null;
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] p-4 overflow-hidden relative">
-            <header className="mb-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href="/profile" className="p-2 bg-white/5 rounded-full text-gray-400 hover:text-white transition-colors">
-                        <ArrowLeft size={20} />
+        <div className="flex-1 flex flex-col bg-[#080808] overflow-hidden relative">
+            <header className="mb-6 flex justify-between items-center bg-black/40 glass p-4 rounded-3xl border border-white/5">
+                <div className="flex items-center gap-3">
+                    <Link href="/profile" className="p-2 bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors border border-white/10">
+                        <ArrowLeft size={18} />
                     </Link>
-                    <div>
-                        <h2 className="text-2xl font-black text-white flex items-center gap-2">
-                            Aura Planner <Wand2 size={20} className="text-purple-400" />
-                        </h2>
-                        <p className="text-gray-500 text-xs font-medium">AI-powered date architect.</p>
-                    </div>
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6">
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-6 px-4 pb-60">
                 {/* AI Inspiration Card */}
                 {!suggestionMode && (
                     <div

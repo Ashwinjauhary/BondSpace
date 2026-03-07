@@ -16,7 +16,7 @@ const GENDERS = [
     { label: 'Prefer not to say', icon: '🤐', value: 'private' },
 ];
 
-type Step = 'avatar' | 'details' | 'bio';
+type Step = 'avatar' | 'theme' | 'bio';
 
 export default function ProfileSetup({ onDone }: { onDone: () => void }) {
     const { token, user, login, updateUser } = useStore();
@@ -28,7 +28,7 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
         bio: '',
     });
     const [loading, setLoading] = useState(false);
-    const steps: Step[] = ['avatar', 'details', 'bio'];
+    const steps: Step[] = ['avatar', 'theme', 'bio'];
     const stepIdx = steps.indexOf(step);
 
     const handleSave = async () => {
@@ -56,7 +56,7 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
 
     const canProgress = useCallback(() => {
         if (step === 'avatar') return !!form.avatar;
-        if (step === 'details') return form.name.trim().length >= 2 && !!form.gender;
+        if (step === 'theme') return form.name.trim().length >= 2 && !!form.gender;
         return true;
     }, [step, form]);
 
@@ -94,10 +94,11 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                                     <button
                                         key={emoji}
                                         onClick={() => setForm(f => ({ ...f, avatar: emoji }))}
-                                        className={`aspect-square rounded-2xl text-2xl flex items-center justify-center transition-all duration-200 ${form.avatar === emoji
-                                            ? 'bg-gradient-to-br from-rose-500/30 to-purple-500/30 border-2 border-rose-500 scale-110 shadow-[0_0_20px_rgba(225,29,72,0.3)]'
+                                        className={`aspect-square rounded-2xl text-2xl flex items-center justify-center transition-all duration-300 ${form.avatar === emoji
+                                            ? 'bg-accent-soft border-2 border-accent scale-110'
                                             : 'bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95'
                                             }`}
+                                        style={form.avatar === emoji ? { boxShadow: '0 0 20px var(--accent-glow)' } : {}}
                                     >
                                         {emoji}
                                     </button>
@@ -107,8 +108,8 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                     )}
 
                     {/* STEP 2 — Name & Gender */}
-                    {step === 'details' && (
-                        <motion.div key="details" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col">
+                    {step === 'theme' && (
+                        <motion.div key="theme" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} className="flex-1 flex flex-col">
                             <div className="mb-8">
                                 <p className="text-rose-400 text-sm font-bold uppercase tracking-widest mb-2">Step 2 of 3</p>
                                 <h2 className="text-3xl font-black text-white">Your details</h2>
@@ -195,11 +196,15 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
                     <button
                         disabled={!canProgress() || loading}
                         onClick={() => {
-                            if (step === 'avatar') setStep('details');
-                            else if (step === 'details') setStep('bio');
+                            if (step === 'avatar') setStep('theme');
+                            else if (step === 'theme') setStep('bio');
                             else handleSave();
                         }}
-                        className="w-full bg-gradient-to-r from-rose-500 to-purple-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-[0_0_30px_rgba(225,29,72,0.25)] hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40"
+                        className="w-full text-white font-black uppercase tracking-widest py-5 rounded-3xl flex items-center justify-center gap-2 shadow-2xl hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40"
+                        style={{
+                            background: 'linear-gradient(to right, var(--accent), var(--accent-secondary))',
+                            boxShadow: '0 10px 25px -5px var(--accent-glow)'
+                        }}
                     >
                         {loading ? (
                             <Loader2 size={20} className="animate-spin" />
@@ -212,10 +217,10 @@ export default function ProfileSetup({ onDone }: { onDone: () => void }) {
 
                     {step !== 'avatar' && (
                         <button
-                            onClick={() => setStep(step === 'bio' ? 'details' : 'avatar')}
-                            className="w-full text-gray-600 text-sm hover:text-gray-400 transition-colors py-1"
+                            onClick={() => setStep(step === 'bio' ? 'theme' : 'avatar')}
+                            className="w-full text-white/30 text-xs font-bold uppercase tracking-widest hover:text-white transition-all py-3"
                         >
-                            ← Back
+                            ← Go Back
                         </button>
                     )}
                     {step === 'bio' && (

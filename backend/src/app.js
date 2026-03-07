@@ -116,6 +116,7 @@ app.post('/api/gallery/upload', galleryRoutes.upload.single('media'), galleryRou
 app.get('/api/gallery/media/:album_id', galleryRoutes.getAlbumMedia);
 app.get('/api/gallery/timeline/:couple_id', galleryRoutes.getTimeline);
 app.post('/api/gallery/timeline', galleryRoutes.addTimelineEvent);
+app.post('/api/gallery/timeline/upload', galleryRoutes.upload.single('media'), galleryRoutes.uploadTimelineMedia);
 
 // AI Guru
 app.post('/api/ai/guru', aiGuruRoutes.chatWithGuru);
