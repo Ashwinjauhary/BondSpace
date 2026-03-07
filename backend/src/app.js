@@ -33,8 +33,20 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // Security & Utility
 app.use(helmet());
+const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL.replace(/\/$/, '')] : [];
+allowedOrigins.push('http://localhost:3000');
+allowedOrigins.push('https://bond-space.vercel.app'); // Exact Vercel URL
+allowedOrigins.push('https://bondspace.vercel.app');
+
 app.use(cors({
-    origin: isProduction ? process.env.CLIENT_URL : [process.env.CLIENT_URL, 'http://localhost:3000'],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps) or if it's in our allowed list
+        if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('vercel.app'))) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
