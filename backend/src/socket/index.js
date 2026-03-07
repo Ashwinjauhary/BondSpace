@@ -10,7 +10,18 @@ let io;
 const initializeSocket = (server) => {
     io = socketIo(server, {
         cors: {
-            origin: process.env.CLIENT_URL || 'http://localhost:3000',
+            origin: function (origin, callback) {
+                const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL.replace(/\/$/, '')] : [];
+                allowedOrigins.push('http://localhost:3000');
+                allowedOrigins.push('https://bond-space.vercel.app');
+                allowedOrigins.push('https://bondspace.vercel.app');
+
+                if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('vercel.app'))) {
+                    callback(null, true);
+                } else {
+                    callback(new Error('Not allowed by CORS'));
+                }
+            },
             methods: ['GET', 'POST'],
             credentials: true,
         },
