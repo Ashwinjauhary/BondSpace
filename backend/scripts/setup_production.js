@@ -37,6 +37,11 @@ async function setup() {
         const migratePhase45 = require('./migrate_phase_4_5_logic');
         await migratePhase45(pool);
 
+        // 4.5. Run User Profile Fields Migration
+        logger.info('Running user profile fields migration...');
+        const migrateUserProfile = require('./migrate_user_profile_fields');
+        await migrateUserProfile(pool);
+
         // 5. Seed Games
         logger.info('Seeding 20+ games...');
         const seedGames = require('./seed_games_20_logic');

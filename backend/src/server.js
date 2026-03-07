@@ -22,6 +22,18 @@ nodeCron.schedule('* * * * *', () => {
 // Start checking for Love Letters every hour
 startLetterCron(io);
 
+const { pool } = require('./config/database');
+const migrateUserProfile = require('../scripts/migrate_user_profile_fields');
+
+// Auto-run lightweight migrations
+(async () => {
+    try {
+        await migrateUserProfile(pool);
+    } catch (err) {
+        console.error('Auto-migration failed', err);
+    }
+})();
+
 // Start Server
 server.listen(PORT, () => {
     console.log(`🚀 BondSpace API running on http://localhost:${PORT}`);
