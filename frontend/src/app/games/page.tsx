@@ -134,7 +134,7 @@ export default function GamesPage() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex-1 w-full max-w-md mx-auto h-full flex flex-col"
+                        className="flex-1 w-full max-w-lg lg:max-w-xl mx-auto h-full flex flex-col"
                     >
                         <GameHost session={activeSession} onExit={() => setActiveSession(null)} />
                     </motion.div>

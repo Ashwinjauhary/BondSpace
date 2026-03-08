@@ -34,9 +34,9 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess: () => v
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md"
+                className="w-full max-w-lg lg:max-w-xl relative z-10 mx-auto mt-[4dvh] mb-[10dvh]"
             >
                 <div className="text-center mb-8">
                     <motion.div

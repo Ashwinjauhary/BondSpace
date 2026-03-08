@@ -244,7 +244,7 @@ export default function LocationPage() {
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-                            className="bg-gray-900 border border-white/10 p-8 rounded-[2.5rem] max-w-md w-full shadow-2xl relative overflow-hidden"
+                            className="bg-gray-900 border border-white/10 p-8 rounded-[2.5rem] max-w-lg lg:max-w-xl w-full shadow-2xl relative overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 via-purple-500 to-rose-500" />
 

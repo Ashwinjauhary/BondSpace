@@ -25,13 +25,19 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-[#080808] text-white selection:bg-rose-500/30 overflow-hidden`}>
         <ThemeWrapper>
-          <div className="fixed inset-0 flex justify-center bg-[#080808]">
-            <div className="w-full h-[100dvh] max-w-md mx-auto relative shadow-[0_0_100px_rgba(0,0,0,0.5)] bg-[#080808] overflow-hidden flex flex-col">
+          {/* Wrapper for Desktop Background vs Mobile Center */}
+          <div className="fixed inset-0 flex justify-center bg-[#050505] overflow-hidden lg:bg-[url('/desktop-bg.jpeg')] lg:bg-cover lg:bg-center lg:backdrop-blur-3xl">
+            {/* Desktop ambient blur overlay */}
+            <div className="hidden lg:block absolute inset-0 bg-black/60 backdrop-blur-3xl z-0" />
+
+            {/* Main App Container */}
+            <div className="w-full h-[100dvh] max-w-lg lg:max-w-xl mx-auto relative shadow-[0_0_150px_rgba(0,0,0,0.8)] bg-[#080808]/90 lg:bg-[#080808]/80 lg:backdrop-blur-xl lg:border-x lg:border-white/5 overflow-hidden flex flex-col z-10">
+
               {/* Background ambient glow effect restricted to container */}
-              <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1]">
+              <div className="absolute inset-0 overflow-hidden pointer-events-none z-[-1] opacity-70">
                 {/* Partner Mood Aura (Central Pulsating Glow) */}
                 <div
-                  className="absolute inset-[-20%] rounded-full blur-[160px] transition-all duration-1000 opacity-60 mix-blend-screen animate-pulse"
+                  className="absolute inset-[-20%] rounded-full blur-[160px] transition-all duration-1000 opacity-80 mix-blend-screen animate-pulse"
                   style={{ backgroundColor: 'var(--partner-aura)' }}
                 />
 

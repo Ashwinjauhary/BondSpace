@@ -263,7 +263,16 @@ export default function GameHost({ session, onExit }: { session: any, onExit: ()
         >
             <div>
                 <div className="flex justify-between items-center mb-8">
-                    <h3 className="text-lg font-bold text-gray-300">Question {gameState.current_question + 1}<span className="text-gray-500">/{totalQ}</span></h3>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleAbort}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 transition-all"
+                            title="Quit Game"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                        </button>
+                        <h3 className="text-lg font-bold text-gray-300">Question {gameState.current_question + 1}<span className="text-gray-500">/{totalQ}</span></h3>
+                    </div>
                     <div className="bg-rose-500/20 text-rose-400 px-3 py-1 rounded-full text-xs font-bold border border-rose-500/30 flex items-center gap-1.5">
                         <Heart size={12} className="fill-rose-400" /> {session.game_name}
                     </div>
@@ -279,10 +288,6 @@ export default function GameHost({ session, onExit }: { session: any, onExit: ()
 
                 {bothAnswered ? renderReveal() : (myMoveForCurrentQ ? renderWaiting() : renderQuestionFormat())}
             </div>
-
-            {!gameState.completed && !bothAnswered && (
-                <button onClick={handleAbort} className="mt-8 text-xs text-gray-500 hover:text-gray-300 uppercase tracking-widest text-center w-full transition-colors">Abort Game</button>
-            )}
         </motion.div>
     );
 }

@@ -25,7 +25,7 @@ export default function BottomNav() {
 
     return (
         <div className="absolute bottom-0 left-0 w-full z-50 px-4 pb-3 pt-2 pointer-events-none">
-            <div className="mx-auto max-w-md bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-2 flex justify-between items-center shadow-2xl pointer-events-auto relative overflow-hidden" style={{ boxShadow: '0 25px 50px -12px var(--accent-glow)' }}>
+            <div className="mx-auto max-w-lg lg:max-w-xl bg-zinc-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-2 flex justify-between items-center shadow-2xl pointer-events-auto relative overflow-hidden" style={{ boxShadow: '0 25px 50px -12px var(--accent-glow)' }}>
                 {/* Animated background glow */}
                 <div className="absolute inset-0 bg-gradient-to-r from-accent/5 via-accent-secondary/5 to-accent/5 bg-[length:200%_auto] animate-pulse" />
 
