@@ -19,8 +19,13 @@ const communityRoutes = require('./routes/community');
 const goalRoutes = require('./routes/goals');
 const inviteRoutes = require('./routes/invite');
 const anonymousChatRoutes = require('./routes/anonymous_chat');
+const wallRoutes = require('./routes/wall');
 const plannerRoutes = require('./routes/planner');
 const storeRoutes = require('./routes/store');
+
+// ==========================================
+// 🛡️ AUTHENTICATION & SECURITY
+// ==========================================
 
 // Middleware
 const authMiddleware = require('./middleware/auth');
@@ -148,7 +153,12 @@ app.post('/api/chat/anonymous/match', anonymousChatRoutes.matchUser);
 app.get('/api/chat/anonymous/:chat_id', anonymousChatRoutes.getAnonymousMessages);
 app.post('/api/chat/anonymous/message', anonymousChatRoutes.sendAnonymousMessage);
 app.post('/api/chat/anonymous/end', anonymousChatRoutes.endAnonymousChat);
+app.use('/api/anonymous', anonymousChatRoutes);
+app.use('/api/wall', wallRoutes);
 
+// ==========================================
+// 🚀 SERVER INITIALIZATION
+// ==========================================
 // Couple Goals
 app.get('/api/goals/:couple_id', goalRoutes.getGoals);
 app.post('/api/goals', goalRoutes.createGoal);

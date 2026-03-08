@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/store/useStore';
 import { motion } from 'framer-motion';
-import { MessageCircle, MapPin, Gamepad2, Users, Images, User } from 'lucide-react';
+import { MessageCircle, MapPin, Gamepad2, Users, Images, User, Palette } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BottomNav() {
@@ -17,6 +17,7 @@ export default function BottomNav() {
         { path: '/', label: 'Chat', icon: <MessageCircle size={24} /> },
         { path: '/location', label: 'Map', icon: <MapPin size={24} /> },
         { path: '/games', label: 'Play', icon: <Gamepad2 size={24} /> },
+        { path: '/wall', label: 'Wall', icon: <Palette size={24} /> },
         { path: '/gallery', label: 'Memories', icon: <Images size={24} /> },
         { path: '/community', label: 'Spaces', icon: <Users size={24} /> },
         { path: '/profile', label: 'Hub', icon: <User size={24} /> },

@@ -202,6 +202,61 @@ const initializeSocket = (server) => {
         });
 
         // ==========================================
+        // 🎨 ETERNAL WALL EVENTS
+        // ==========================================
+        socket.on('wall:element:add', async (data) => {
+            if (!socket.coupleId) return;
+            try {
+                const { type, elementData } = data;
+                const result = await query(
+                    `INSERT INTO eternal_wall_elements (bond_id, user_id, type, data) 
+                     VALUES ($1, $2, $3, $4) RETURNING *`,
+                    [socket.coupleId, socket.userId, type, elementData]
+                );
+
+                // Broadcast to partner including the element's DB ID
+                socket.to(socket.coupleId).emit('wall:element:added', result.rows[0]);
+            } catch (err) {
+                console.error('Socket wall:element:add error:', err);
+            }
+        });
+
+        socket.on('wall:element:update', async (data) => {
+            if (!socket.coupleId) return;
+            try {
+                const { id, elementData } = data;
+                await query(
+                    `UPDATE eternal_wall_elements SET data = $1, updated_at = NOW() 
+                     WHERE id = $2 AND bond_id = $3`,
+                    [elementData, id, socket.coupleId]
+                );
+                socket.to(socket.coupleId).emit('wall:element:updated', { id, data: elementData });
+            } catch (err) {
+                console.error('Socket wall:element:update error:', err);
+            }
+        });
+
+        socket.on('wall:element:remove', async (id) => {
+            if (!socket.coupleId) return;
+            try {
+                await query('DELETE FROM eternal_wall_elements WHERE id = $1 AND bond_id = $2', [id, socket.coupleId]);
+                socket.to(socket.coupleId).emit('wall:element:removed', id);
+            } catch (err) {
+                console.error('Socket wall:element:remove error:', err);
+            }
+        });
+
+        socket.on('wall:clear', async () => {
+            if (!socket.coupleId) return;
+            try {
+                await query('DELETE FROM eternal_wall_elements WHERE bond_id = $1', [socket.coupleId]);
+                socket.to(socket.coupleId).emit('wall:cleared');
+            } catch (err) {
+                console.error('Socket wall:clear error:', err);
+            }
+        });
+
+        // ==========================================
         // DISCONNECT
         // ==========================================
         socket.on('disconnect', async () => {

@@ -47,6 +47,11 @@ async function setup() {
         const migrateMood = require('./migrate_mood_fields');
         await migrateMood(pool);
 
+        // 4.7. Run Eternal Wall Migration
+        logger.info('Running eternal wall migration...');
+        const migrateEternalWall = require('./migrate_eternal_wall');
+        await migrateEternalWall(pool);
+
         // 5. Seed Games
         logger.info('Seeding 20+ games...');
         const seedGames = require('./seed_games_20_logic');
