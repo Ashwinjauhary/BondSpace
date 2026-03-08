@@ -223,17 +223,48 @@ The PostgreSQL database encompasses 20 core tables strictly relational and norma
 
 ## 🛠️ Tech Stack Breakdown
 
-### Frontend — Dynamic Client & Mobile
-- **Next.js 16 (React 19)**: Leveraging App Router, Server Actions, and optimal chunking. 
-- **Capacitor 6**: Maps native mobile APIs (Bluetooth, File System, Geolocation) securely into the DOM.
-- **Tailwind CSS v4 & Framer Motion**: Liquid smooth animations, dynamic dark mode, glassmorphism UI.
-- **Zustand**: Slices state into `authStore`, `chatStore`, `gameStore`, `themeStore`.
+### 🌐 Frontend (Web & Mobile UI)
+| Category | Technology | Purpose |
+|---|---|---|
+| **Core Framework** | **Next.js 16 (App Router)** | Server-side rendering, API integration, optimal chunking, static exports. |
+| **UI Library** | **React 19** | Component-based UI logic and interactive states. |
+| **Language** | **TypeScript** | Static typing for enterprise-grade stability and zero runtime type errors. |
+| **Styling** | **Tailwind CSS v4** | Utility-first, zero-runtime styling engine for Glassmorphism. |
+| **Animations** | **Framer Motion** | Fluid page transitions, modal spring physics, layout animations. |
+| **State Management** | **Zustand** | Lightweight, slice-based state management (Auth, Theme, Game State). |
+| **Mapping & Location** | **Leaflet + React-Leaflet** | Dynamic mapping, geofencing polygons, real-time marker extrapolation. |
+| **Cryptography** | **libsodium-wrappers** | Client-side Ed25519 key generation & `crypto_secretbox_easy` encryption. |
+| **Icons & SVG** | **Lucide React** | Consistent, crisp, scalable vector icons. |
+| **Date Utility** | **date-fns** | Localized, immutable date, TTL, and calendar mathematics. |
 
-### Backend — High Performance API
-- **Node.js 18 & Express 5**: Asynchronous routing, middleware arrays, structured error handling.
-- **Socket.IO**: Fallback polling to WebSocket upgrade, stateful connections via Redis Adapter.
-- **PostgreSQL (pg)**: Robust parameterized queries to prevent SQL injection.
-- **Cloudinary SDK**: Direct stream uploads limiting server RAM buffering.
+### ⚙️ Backend (API & Real-Time)
+| Category | Technology | Purpose |
+|---|---|---|
+| **Runtime** | **Node.js 18+** | High-performance V8 asynchronous event-loop engine. |
+| **Web Framework** | **Express.js 5** | Middleware orchestration, REST routing, and robust error handling. |
+| **Real-Time Engine** | **Socket.IO** | Bi-directional WebSockets with fallback long-polling for poor networks. |
+| **Database** | **PostgreSQL (pg)** | ACID-compliant relational data storage (Users, Messages, Gamification). |
+| **Cache & Pub/Sub** | **Redis** | Ephemeral game state sync, Socket.IO adapter scaling, rate limiting. |
+| **Authentication** | **JWT + bcryptjs** | Stateless authentication and 12-round salted password hashing. |
+| **Media Handling** | **Cloudinary SDK + Multer** | Stream-based multi-part uploads directly to edge CDN. |
+| **Security Middleware** | **Helmet + express-rate-limit** | HTTP header fortification and brute-force mitigation. |
+| **Scheduled Jobs** | **node-cron** | Unlocking Love Letters, expiring temporary location streams, resetting streaks. |
+
+### 📱 Mobile (Native Capabilities)
+| Category | Technology | Purpose |
+|---|---|---|
+| **Native Wrapper** | **Capacitor 6** | Wraps the Next.js `out/` export into a standalone Android APK. |
+| **OTA Engine** | **Capacitor Filesystem / Http / Zip Plugins** | Downloads web bundles from GitHub and unzips them in the background. |
+| **App Configuration** | **Trapeze / Capacitor-Assets** | Automated `AndroidManifest.xml` updates and icon generation. |
+| **Native Hardware** | **Capacitor Geolocation** | Pings GPS hardware directly in background for accurate mutual sharing. |
+
+### ☁️ Infrastructure & DevOps
+| Category | Technology | Purpose |
+|---|---|---|
+| **CI/CD Pipeline** | **GitHub Actions** | Automated tests, Web builds, APK generation, and Git-Releases generation. |
+| **Submodule Management** | **Git Submodules** | Orchestrating the `bondspace-release` repo to host the Landing Page separately. |
+| **Web Hosting** | **GitHub Pages** | Free, edge-cached static hosting for the premium Glassmorphism landing site. |
+| **API Deployment** | **Render / Railway / Fly.io** | Containerized backend process execution and load balancing. |
 
 ---
 
