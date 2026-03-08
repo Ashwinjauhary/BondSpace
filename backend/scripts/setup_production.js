@@ -42,6 +42,11 @@ async function setup() {
         const migrateUserProfile = require('./migrate_user_profile_fields');
         await migrateUserProfile(pool);
 
+        // 4.6. Run Mood Sync Fields Migration
+        logger.info('Running mood sync fields migration...');
+        const migrateMood = require('./migrate_mood_fields');
+        await migrateMood(pool);
+
         // 5. Seed Games
         logger.info('Seeding 20+ games...');
         const seedGames = require('./seed_games_20_logic');
