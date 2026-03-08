@@ -164,6 +164,7 @@ app.get('/api/store', storeRoutes.getStoreData);
 app.post('/api/store/purchase', storeRoutes.purchaseItem);
 
 // Health Check
+app.get('/', (req, res) => res.json({ message: "BondSpace API is online! 💖🚀", status: "alive" }));
 app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // Error handling
