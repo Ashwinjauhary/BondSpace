@@ -10,7 +10,7 @@ const logger = require('../src/lib/logger');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false } // Force SSL for external connections (like Render)
+    ssl: process.env.DATABASE_URL && (process.env.DATABASE_URL.includes('.render.com') || process.env.DATABASE_URL.includes('supabase.co') || process.env.DATABASE_URL.includes('neon.tech') || process.env.DATABASE_URL.includes('amazonaws.com')) ? { rejectUnauthorized: false } : false
 });
 
 async function setup() {
