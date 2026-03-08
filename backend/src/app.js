@@ -42,13 +42,19 @@ const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL.replace(
 allowedOrigins.push('http://localhost:3000');
 allowedOrigins.push('https://bond-space.vercel.app'); // Exact Vercel URL
 allowedOrigins.push('https://bondspace.vercel.app');
+// Capacitor specific origins
+allowedOrigins.push('http://localhost');
+allowedOrigins.push('https://localhost');
+allowedOrigins.push('capacitor://localhost');
+allowedOrigins.push('ionic://localhost');
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps) or if it's in our allowed list
-        if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('vercel.app'))) {
+        if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('vercel.app')) || origin.startsWith('file://')) {
             callback(null, true);
         } else {
+            console.error('CORS blocked origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
