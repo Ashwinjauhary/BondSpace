@@ -1,0 +1,3 @@
+[submodule "bondspace-release"]
+	path = bondspace-release
+	url = https://github.com/Ashwinjauhary/BondSpace-Release.git
