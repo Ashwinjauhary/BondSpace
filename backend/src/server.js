@@ -24,11 +24,13 @@ startLetterCron(io);
 
 const { pool } = require('./config/database');
 const migrateUserProfile = require('../scripts/migrate_user_profile_fields');
+const migrateMood = require('../scripts/migrate_mood_fields');
 
 // Auto-run lightweight migrations
 (async () => {
     try {
         await migrateUserProfile(pool);
+        await migrateMood(pool);
     } catch (err) {
         console.error('Auto-migration failed', err);
     }
