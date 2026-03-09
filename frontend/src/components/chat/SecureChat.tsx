@@ -235,7 +235,10 @@ export default function SecureChat() {
     };
 
     const sendVoiceNote = async () => {
-        if (!audioBlob || !socket || isSendingVoice || !bond) return;
+        if (!audioBlob || !socket || isSendingVoice || !bond) {
+            console.log('🚫 Cannot send: ', { hasBlob: !!audioBlob, hasSocket: !!socket, alreadySending: isSendingVoice, hasBond: !!bond });
+            return;
+        }
         if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
         setPreviewPlaying(false);
         setIsSendingVoice(true);
@@ -243,7 +246,7 @@ export default function SecureChat() {
         try {
             console.log(`🎤 Uploading voice note: ${audioBlob.size} bytes`);
 
-            // 1. Upload to Cloudinary via HTTP (much more stable than Socket.io for binary)
+            // 1. Upload to Cloudinary via HTTP
             const formData = new FormData();
             formData.append('audio', audioBlob, 'voice_note.webm');
             formData.append('couple_id', bond.id);
@@ -257,35 +260,44 @@ export default function SecureChat() {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / (progressEvent.total || audioBlob.size));
                     console.log(`📡 Uploading: ${percentCompleted}%`);
                 }
+            }).catch(e => {
+                const msg = e.response?.data?.error || e.message;
+                throw new Error(`Upload API Failed: ${msg}`);
             });
 
             const media_url = uploadRes.data.media_url;
             console.log(`✅ Upload complete: ${media_url}`);
 
-            // 2. Send message via socket with the stable URL
+            // 2. Send message via socket
+            let ackReceived = false;
             socket.emit('send_message', {
                 message: '🎤 Voice note',
                 message_type: 'voice',
                 media_url: media_url
             }, (ack: any) => {
+                ackReceived = true;
                 setIsSendingVoice(false);
                 if (ack && ack.error) {
                     console.error('❌ Server rejected socket message:', ack.error);
-                    alert(`Server Error: ${ack.error}`);
+                    alert(`Socket Error: ${ack.error}`);
                 } else {
                     console.log('🎉 Voice note sent successfully');
                     setAudioBlob(null);
                 }
             });
 
-            // Fallback reset for safety
-            setTimeout(() => setIsSendingVoice(prev => prev ? false : prev), 20000);
+            // Fallback reset with specific error for user
+            setTimeout(() => {
+                if (!ackReceived && isSendingVoice) {
+                    setIsSendingVoice(false);
+                    alert('⚠️ Upload succeeded but server didn\'t confirm reception (Socket Timeout). The message might still appear after refreshing.');
+                }
+            }, 25000);
 
         } catch (err: any) {
             setIsSendingVoice(false);
-            console.error('❌ Upload failed:', err);
-            const errorMsg = err.response?.data?.error || err.message || 'Unknown error';
-            alert(`Voice note upload failed: ${errorMsg}\n\nPlease check your internet connection and try again.`);
+            console.error('❌ Final Failure:', err);
+            alert(`Voice Failed: ${err.message || 'Unknown Error'}`);
         }
     };
 
