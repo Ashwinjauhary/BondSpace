@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
-import { API_URL } from '@/lib/utils';
+import { API_URL, WEB_URL } from '@/lib/utils';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link2, Copy, Check, Loader2, Heart, RefreshCw, QrCode, Users } from 'lucide-react';
@@ -21,9 +21,8 @@ export default function ConnectPartner() {
             const { data } = await axios.post(`${API_URL}/bond/invite`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Use current window origin + join path + code for robustness
-            const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://bond-space.vercel.app';
-            setInviteUrl(`${baseUrl}/join/${data.code}`);
+            // Use the absolute WEB_URL for invite links to avoid localhost issues in mobile apps
+            setInviteUrl(`${WEB_URL}/join/${data.code}`);
             setPolling(true);
         } catch (err: any) {
             const errData = err.response?.data;

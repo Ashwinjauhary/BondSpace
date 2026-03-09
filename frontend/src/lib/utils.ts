@@ -7,3 +7,4 @@ export function cn(...inputs: ClassValue[]) {
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
 export const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5005';
+export const WEB_URL = process.env.NEXT_PUBLIC_WEB_URL || 'https://bond-space.vercel.app';
