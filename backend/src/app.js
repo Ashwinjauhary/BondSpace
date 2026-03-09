@@ -33,11 +33,12 @@ const authMiddleware = require('./middleware/auth');
 const logger = require('./lib/logger');
 
 const app = express();
+app.set('trust proxy', 1); // For express-rate-limit on Render soul.
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === 'production'; soul.
 
-// Security & Utility
-app.use(helmet());
+    // Security & Utility
+    app.use(helmet());
 const allowedOrigins = process.env.CLIENT_URL ? [process.env.CLIENT_URL.replace(/\/$/, '')] : [];
 allowedOrigins.push('http://localhost:3000');
 allowedOrigins.push('https://bond-space.vercel.app'); // Exact Vercel URL
