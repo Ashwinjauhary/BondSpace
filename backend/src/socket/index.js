@@ -132,7 +132,7 @@ const initializeSocket = (server) => {
                 }
             } catch (err) {
                 console.error('❌ Socket send_message error:', err);
-                if (callback) callback({ error: 'Server error while sending message' });
+                if (callback) callback({ error: `Server error: ${err.message || 'Unknown'}` });
             }
         });
 

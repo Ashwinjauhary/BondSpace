@@ -193,7 +193,8 @@ export default function SecureChat() {
 
             socket.emit('send_message', {
                 message: ciphertext,
-                message_type: 'sticker'
+                message_type: 'sticker',
+                media_url: mediaUrl
             }, (ack: any) => {
                 if (ack && ack.error) {
                     alert("Sticker failed: " + ack.error);
