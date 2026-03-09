@@ -76,11 +76,11 @@ export default function SecureChat() {
                         if (msg.message_type === 'voice') return msg;
                         try {
                             const plaintext = encryptionKey
-                                ? await decryptMessage(msg.message, encryptionKey)
+                                ? await decryptMessage(msg.message, encryptionKey).catch(() => msg.message)
                                 : msg.message;
                             return { ...msg, message: plaintext };
                         } catch {
-                            return { ...msg, message: '[Decryption Failed]' };
+                            return msg;
                         }
                     })
                 );
@@ -125,11 +125,11 @@ export default function SecureChat() {
             }
             try {
                 const plaintext = encryptionKey
-                    ? await decryptMessage(msg.message, encryptionKey)
+                    ? await decryptMessage(msg.message, encryptionKey).catch(() => msg.message)
                     : msg.message;
                 setMessages(prev => [...prev, { ...msg, message: plaintext }]);
             } catch {
-                setMessages(prev => [...prev, { ...msg, message: '[Decryption Failed]' }]);
+                setMessages(prev => [...prev, msg]);
             }
         };
         const handleReaction = ({ message_id, emoji }: { message_id: string; emoji: string }) => {
@@ -176,13 +176,23 @@ export default function SecureChat() {
         }
     };
 
-    const handleSendSticker = (mediaUrl: string) => {
+    const handleSendSticker = async (mediaUrl: string) => {
         if (!socket) return;
         setShowStickers(false);
-        socket.emit('send_message', {
-            message: mediaUrl,
-            message_type: 'sticker'
-        });
+        try {
+            const ciphertext = encryptionKey ? await encryptMessage(mediaUrl, encryptionKey) : mediaUrl;
+            socket.emit('send_message', {
+                message: ciphertext,
+                message_type: 'sticker'
+            });
+        } catch (err) {
+            console.error('Sticker encryption failed:', err);
+            // Fallback to plain if encryption fails for some reason
+            socket.emit('send_message', {
+                message: mediaUrl,
+                message_type: 'sticker'
+            });
+        }
     };
 
     const startRecording = async () => {
