@@ -20,24 +20,32 @@ filesToFix.forEach(fileRelPath => {
 
     try {
         const content = fs.readFileSync(fullPath, 'utf8');
-        let updatedContent;
+        let updatedContent = content;
 
         if (isRevert) {
-            // Comment the STATIC_EXPORT lines back (ensure no double comments)
-            updatedContent = content.replace(/^(export const dynamic|export const dynamicParams|export async function generateStaticParams)/gm, (match) => {
-                return `// STATIC_EXPORT ${match}`;
+            // Logic: Find the static segments and ensure they are all prefixed with // STATIC_EXPORT
+            // This is safer than the previous regex approach
+            const lines = content.split('\n');
+            const processedLines = lines.map(line => {
+                const trimmed = line.trim();
+                // If it's one of our target lines and NOT already commented, comment it
+                if ((trimmed.startsWith('export const dynamic') ||
+                    trimmed.startsWith('export const dynamicParams') ||
+                    trimmed.startsWith('export async function generateStaticParams') ||
+                    trimmed.startsWith('return [{') ||
+                    trimmed === '}') && !line.includes('STATIC_EXPORT') && !trimmed.startsWith('export default') && !trimmed.startsWith('return <')) {
+
+                    // Special check for the closing brace - only if it's the one for generateStaticParams
+                    // In our files, the only standalone } is for that function
+                    if (trimmed === '}' && lines.indexOf(line) < 5) return line; // Skip if it's likely part of something else early on
+
+                    return `// STATIC_EXPORT ${line}`;
+                }
+                return line;
             });
-            // Also handle the internal lines of the function if any
-            updatedContent = updatedContent.replace(/^(\s+)return \[{ (code|id): 'default' }\];/gm, '$1// STATIC_EXPORT return [{ $2: \'default\' }];');
-            updatedContent = updatedContent.replace(/^}$/gm, (match, offset, string) => {
-                // Only comment out the closing brace if it belongs to generateStaticParams
-                // This is a bit naive but works for our simple files
-                const lines = string.substring(0, offset).split('\n');
-                if (lines[lines.length - 1].includes('generateStaticParams')) return `// STATIC_EXPORT ${match}`;
-                return match;
-            });
+            updatedContent = processedLines.join('\n');
         } else {
-            // Uncomment the STATIC_EXPORT lines
+            // Uncomment everything prefixed with // STATIC_EXPORT
             updatedContent = content.replace(/\/\/ STATIC_EXPORT /g, '');
         }
 
