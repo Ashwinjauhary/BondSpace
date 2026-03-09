@@ -246,20 +246,34 @@ export default function SecureChat() {
         if (timerRef.current) clearInterval(timerRef.current);
     };
 
-    const sendVoiceNote = () => {
+    const sendVoiceNote = async () => {
         if (!audioBlob || !socket) return;
         if (previewAudioRef.current) { previewAudioRef.current.pause(); previewAudioRef.current = null; }
         setPreviewPlaying(false);
-        const reader = new FileReader();
-        reader.onload = () => {
+
+        try {
+            // In Capacitor/Android WebView, FileReader sometimes silently fails on Blobs.
+            // Using a Promise wrapper and fallback to blob.text/arrayBuffer if needed.
+            const base64data = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (reader.result) resolve(reader.result as string);
+                    else reject(new Error('Failed to read blob'));
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(audioBlob);
+            });
+
             socket.emit('send_message', {
                 message: '🎤 Voice note',
                 message_type: 'voice',
-                media_url: reader.result as string
+                media_url: base64data
             });
             setAudioBlob(null);
-        };
-        reader.readAsDataURL(audioBlob);
+        } catch (err) {
+            console.error('Error sending voice note:', err);
+            alert('Failed to send voice note. Please try again.');
+        }
     };
 
     const playWebAudio = async (url: string, id: string, isPreview: boolean) => {
