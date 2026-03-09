@@ -8,8 +8,8 @@ import AlbumDetailClient from './AlbumDetailClient';
 
 // Next.js static export needs at least one path to generate a static HTML file
 // STATIC_EXPORT export async function generateStaticParams() {
-    // STATIC_EXPORT return [{ id: 'default' }];
-}
+// STATIC_EXPORT return [{ id: 'default' }];
+// STATIC_EXPORT }
 
 export default function AlbumDetailPage() {
     return <AlbumDetailClient />;
